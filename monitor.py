@@ -138,12 +138,22 @@ def push_bark(key: str, title: str, body: str) -> None:
             raise RuntimeError(f"HTTP {r.status}")
 
 
+def _serverchan_url(key: str) -> str:
+    """接受完整 URL 或裸 SendKey(如 SCT437840Txxx), 统一成可请求的端点。"""
+    key = key.strip()
+    if key.startswith("http://") or key.startswith("https://"):
+        return key
+    return f"https://sctapi.ftqq.com/{key}.send"
+
+
 def push_serverchan(key: str, title: str, body: str) -> None:
+    url = _serverchan_url(key)
     data = parse.urlencode({"title": title, "desp": body}).encode()
-    with request.urlopen(request.Request(key, data=data, headers={"User-Agent": UA}), timeout=TIMEOUT) as r:
+    with request.urlopen(request.Request(url, data=data, headers={"User-Agent": UA}), timeout=TIMEOUT) as r:
         resp = json.loads(r.read().decode("utf-8", "replace"))
     if resp.get("code") not in (0, None):
         raise RuntimeError(f"ServerChan 返回异常: {resp}")
+    log(f"ServerChan 已投递 (pushid={resp.get('data', {}).get('pushid')})")
 
 
 def push_pushplus(token: str, title: str, body: str) -> None:
