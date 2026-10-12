@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+alerts.log
+state.json.tmp
+_*.py
